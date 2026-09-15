@@ -1,8 +1,14 @@
 package com.example.weatherwidget
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.view.Gravity
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -16,26 +22,63 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
 
     private val LOCATION_PERMISSION_CODE = 100
+    private lateinit var infoText: TextView
+    private lateinit var permissionButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val info = TextView(this)
-        info.text = "Widget Meteo installato.\n\n" +
-                "Tieni premuto sulla schermata Home, scegli 'Widget', " +
-                "cerca 'Weather Widget' e trascinalo sulla home.\n\n" +
-                "Concedi il permesso di posizione qui sotto per far funzionare il widget."
-        info.setPadding(48, 96, 48, 48)
-        info.textSize = 16f
-        setContentView(info)
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.setPadding(48, 96, 48, 48)
 
-        checkLocationPermission()
+        infoText = TextView(this)
+        infoText.text = "Widget Meteo installato.\n\n" +
+                "Tieni premuto sulla schermata Home, scegli 'Widget', " +
+                "cerca 'Weather Widget' e trascinalo sulla home."
+        infoText.textSize = 16f
+        layout.addView(infoText)
+
+        permissionButton = Button(this)
+        permissionButton.text = "Concedi permesso di posizione"
+        val buttonParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        buttonParams.topMargin = 64
+        buttonParams.gravity = Gravity.CENTER_HORIZONTAL
+        permissionButton.layoutParams = buttonParams
+        permissionButton.setOnClickListener { onPermissionButtonClicked() }
+        layout.addView(permissionButton)
+
+        setContentView(layout)
+
+        refreshUiState()
     }
 
-    private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(
+    override fun onResume() {
+        super.onResume()
+        refreshUiState()
+    }
+
+    private fun hasLocationPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun refreshUiState() {
+        if (hasLocationPermission()) {
+            permissionButton.visibility = android.view.View.GONE
+            WeatherWidgetProvider.requestImmediateUpdate(this)
+        } else {
+            permissionButton.visibility = android.view.View.VISIBLE
+        }
+    }
+
+    private fun onPermissionButtonClicked() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            )
         ) {
             ActivityCompat.requestPermissions(
                 this,
@@ -43,8 +86,27 @@ class MainActivity : AppCompatActivity() {
                 LOCATION_PERMISSION_CODE
             )
         } else {
-            WeatherWidgetProvider.requestImmediateUpdate(this)
+            // Prima richiesta, oppure negato con "Non chiedere più": in questo
+            // secondo caso il sistema non mostra più il popup, quindi si apre
+            // direttamente la pagina permessi dell'app nelle Impostazioni.
+            val alreadyAsked = getPreferences(0).getBoolean("asked_location", false)
+            if (!alreadyAsked) {
+                getPreferences(0).edit().putBoolean("asked_location", true).apply()
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    LOCATION_PERMISSION_CODE
+                )
+            } else {
+                openAppSettings()
+            }
         }
+    }
+
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        intent.data = Uri.fromParts("package", packageName, null)
+        startActivity(intent)
     }
 
     override fun onRequestPermissionsResult(
@@ -53,11 +115,8 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_CODE &&
-            grantResults.isNotEmpty() &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            WeatherWidgetProvider.requestImmediateUpdate(this)
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            refreshUiState()
         }
     }
 }
