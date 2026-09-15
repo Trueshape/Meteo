@@ -9,6 +9,8 @@ import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.content.pm.PackageManager
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlin.concurrent.thread
 
 class WeatherWidgetProvider : AppWidgetProvider() {
@@ -59,7 +61,12 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         }
 
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-        fusedClient.lastLocation.addOnSuccessListener { location ->
+        // getCurrentLocation richiede una posizione fresca, invece di lastLocation
+        // che è la cache dell'ultima posizione richiesta da QUALSIASI app: se nessuna
+        // l'ha mai chiesta (es. dopo un'installazione pulita), lastLocation è null.
+        fusedClient.getCurrentLocation(
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY, CancellationTokenSource().token
+        ).addOnSuccessListener { location ->
             if (location == null) {
                 views.setTextViewText(R.id.city_text, "Posizione non disponibile")
                 manager.updateAppWidget(widgetId, views)
