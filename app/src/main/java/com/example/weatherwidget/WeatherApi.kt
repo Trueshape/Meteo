@@ -27,10 +27,10 @@ object WeatherApi {
         3 -> "⛅" to "Nuvoloso"
         45, 48 -> "🌫️" to "Nebbia"
         51, 53, 55, 56, 57 -> "🌦️" to "Pioviggine"
-        61, 63, 65, 66, 67 -> "🌧️" to "Pioggia"
+        61, 63, 65, 66, 67 -> "☔" to "Pioggia"
         71, 73, 75, 77 -> "❄️" to "Neve"
         80, 81, 82 -> "🌦️" to "Rovesci"
-        95, 96, 99 -> "⛈️" to "Temporali"
+        95, 96, 99 -> "🌩️" to "Temporali"
         else -> "⛅" to "Variabile"
     }
 
