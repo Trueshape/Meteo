@@ -63,20 +63,14 @@
         android:textColor="#E6FFFFFF"
         android:textSize="11sp" />
 
-    <!-- Disegnata come un'unica bitmap (vedi drawHourlyBitmap): mettere 24 RemoteViews
-         separate dentro uno scroll orizzontale manda in errore il widget su alcuni
-         launcher (es. Smart Launcher) - una singola immagine scorrevole no. -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
+    <!-- Disegnata come un'unica bitmap (vedi drawHourlyBitmap). NIENTE
+         HorizontalScrollView: su Smart Launcher manda il widget in errore
+         ("Aggiusta") a prescindere dal contenuto - confermato con più test. -->
+    <ImageView
+        android:id="@+id/hourly_image"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:scrollbars="none">
-
-        <ImageView
-            android:id="@+id/hourly_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </HorizontalScrollView>
+        android:layout_marginTop="10dp" />
 
     <LinearLayout
         android:layout_width="match_parent"

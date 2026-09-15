@@ -102,7 +102,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     )
 
                     views.setImageViewBitmap(
-                        R.id.hourly_image, drawHourlyBitmap(context, result.hourlyForecast)
+                        R.id.hourly_image, drawHourlyBitmap(context, result.hourlyForecast.take(6))
                     )
 
                     views.removeAllViews(R.id.forecast_container)
