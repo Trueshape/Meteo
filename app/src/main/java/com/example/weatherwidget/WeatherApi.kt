@@ -4,16 +4,13 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** Un'icona meteo nei due formati disponibili: emoji di sistema o disegno vettoriale. */
-data class WeatherIcon(val emoji: String, val drawableRes: Int)
+data class DayForecast(val label: String, val icon: String, val tempMin: Int, val tempMax: Int)
 
-data class DayForecast(val label: String, val icon: WeatherIcon, val tempMin: Int, val tempMax: Int)
-
-data class HourForecast(val label: String, val icon: WeatherIcon, val temp: Int)
+data class HourForecast(val label: String, val icon: String, val temp: Int)
 
 data class WeatherResult(
     val currentTemp: Int,
-    val currentIcon: WeatherIcon,
+    val currentIcon: String,
     val currentDesc: String,
     val currentHumidity: Int,
     val rainProbability: Int,
@@ -23,18 +20,18 @@ data class WeatherResult(
 
 object WeatherApi {
 
-    // Mappa i weather code di Open-Meteo (WMO) a icona (emoji + vettoriale Weather Icons) + descrizione
-    private fun codeToIconDesc(code: Int): Pair<WeatherIcon, String> = when (code) {
-        0 -> WeatherIcon("☀️", R.drawable.ic_weather_sunny) to "Sereno"
-        1, 2 -> WeatherIcon("🌤️", R.drawable.ic_weather_partly_cloudy) to "Poco nuvoloso"
-        3 -> WeatherIcon("⛅", R.drawable.ic_weather_cloudy) to "Nuvoloso"
-        45, 48 -> WeatherIcon("🌫️", R.drawable.ic_weather_fog) to "Nebbia"
-        51, 53, 55, 56, 57 -> WeatherIcon("🌦️", R.drawable.ic_weather_drizzle) to "Pioviggine"
-        61, 63, 65, 66, 67 -> WeatherIcon("🌧️", R.drawable.ic_weather_rain) to "Pioggia"
-        71, 73, 75, 77 -> WeatherIcon("❄️", R.drawable.ic_weather_snow) to "Neve"
-        80, 81, 82 -> WeatherIcon("🌦️", R.drawable.ic_weather_showers) to "Rovesci"
-        95, 96, 99 -> WeatherIcon("🌩️", R.drawable.ic_weather_thunderstorm) to "Temporali"
-        else -> WeatherIcon("⛅", R.drawable.ic_weather_cloudy) to "Variabile"
+    // Mappa i weather code di Open-Meteo (WMO) a emoji + descrizione in italiano
+    private fun codeToIconDesc(code: Int): Pair<String, String> = when (code) {
+        0 -> "☀️" to "Sereno"
+        1, 2 -> "🌤️" to "Poco nuvoloso"
+        3 -> "⛅" to "Nuvoloso"
+        45, 48 -> "🌫️" to "Nebbia"
+        51, 53, 55, 56, 57 -> "🌦️" to "Pioviggine"
+        61, 63, 65, 66, 67 -> "🌧️" to "Pioggia"
+        71, 73, 75, 77 -> "❄️" to "Neve"
+        80, 81, 82 -> "🌦️" to "Rovesci"
+        95, 96, 99 -> "⛈️" to "Temporali"
+        else -> "⛅" to "Variabile"
     }
 
     private val giorni = arrayOf("Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab")

@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.location.Geocoder
-import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.ActivityCompat
 import android.Manifest
@@ -42,38 +41,17 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          */
         private fun pickLayoutRes(context: Context, manager: AppWidgetManager, widgetId: Int): Int {
             val options = manager.getAppWidgetOptions(widgetId)
-            // OPTION_APPWIDGET_MIN_HEIGHT è l'altezza in landscape, non quella reale in
-            // portrait (dove il widget viene quasi sempre visto): serve MAX_HEIGHT per quella.
-            // Si prende la maggiore delle due per coprire entrambi gli orientamenti.
             val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
-            val maxHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeightDp)
-            val heightDp = maxOf(minHeightDp, maxHeightDp)
             return when {
-                heightDp < 155 -> R.layout.weather_widget_small
-                heightDp < 220 -> R.layout.weather_widget_medium
+                minHeightDp < 155 -> R.layout.weather_widget_small
+                minHeightDp < 220 -> R.layout.weather_widget_medium
                 else -> R.layout.weather_widget_large
-            }
-        }
-
-        /** Mostra l'emoji o il disegno vettoriale nella coppia di viste indicata, in base alla preferenza. */
-        private fun setWeatherIcon(
-            views: RemoteViews, emojiViewId: Int, vectorViewId: Int, icon: WeatherIcon, useVector: Boolean
-        ) {
-            if (useVector) {
-                views.setViewVisibility(emojiViewId, View.GONE)
-                views.setViewVisibility(vectorViewId, View.VISIBLE)
-                views.setImageViewResource(vectorViewId, icon.drawableRes)
-            } else {
-                views.setViewVisibility(vectorViewId, View.GONE)
-                views.setViewVisibility(emojiViewId, View.VISIBLE)
-                views.setTextViewText(emojiViewId, icon.emoji)
             }
         }
 
         private fun updateSingleWidget(context: Context, manager: AppWidgetManager, widgetId: Int) {
             val layoutRes = pickLayoutRes(context, manager, widgetId)
             val views = RemoteViews(context.packageName, layoutRes)
-            val useVectorIcons = WidgetPrefs.getIconSet(context, widgetId) == WidgetPrefs.ICON_SET_VECTOR
 
             val opacityPercent = WidgetPrefs.getOpacity(context, widgetId)
             val alpha = (opacityPercent * 255 / 100).coerceIn(0, 255)
@@ -122,21 +100,17 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                         return@thread
                     }
 
-                    setWeatherIcon(
-                        views, R.id.icon_text_emoji, R.id.icon_text_vector, result.currentIcon, useVectorIcons
-                    )
+                    views.setTextViewText(R.id.icon_text, result.currentIcon)
                     views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
                     views.setTextViewText(R.id.desc_text, result.currentDesc)
-                    views.setTextViewText(R.id.humidity_text, "${result.currentHumidity}%")
-                    views.setTextViewText(R.id.rain_text, "${result.rainProbability}%")
+                    views.setTextViewText(R.id.humidity_text, "💧 ${result.currentHumidity}%")
+                    views.setTextViewText(R.id.rain_text, "☔ ${result.rainProbability}%")
 
                     views.removeAllViews(R.id.hourly_container)
                     for (hour in result.hourlyForecast) {
                         val hourView = RemoteViews(context.packageName, R.layout.hour_column)
                         hourView.setTextViewText(R.id.hour_label, hour.label)
-                        setWeatherIcon(
-                            hourView, R.id.hour_icon_emoji, R.id.hour_icon_vector, hour.icon, useVectorIcons
-                        )
+                        hourView.setTextViewText(R.id.hour_icon, hour.icon)
                         hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
                         views.addView(R.id.hourly_container, hourView)
                     }
@@ -145,9 +119,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     for (day in result.forecast.take(6)) {
                         val dayView = RemoteViews(context.packageName, R.layout.day_column)
                         dayView.setTextViewText(R.id.day_label, day.label)
-                        setWeatherIcon(
-                            dayView, R.id.day_icon_emoji, R.id.day_icon_vector, day.icon, useVectorIcons
-                        )
+                        dayView.setTextViewText(R.id.day_icon, day.icon)
                         dayView.setTextViewText(R.id.day_temp, "${day.tempMin}°/${day.tempMax}°")
                         views.addView(R.id.forecast_container, dayView)
                     }
