@@ -65,8 +65,19 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 return
             }
 
+            // Disegna subito un placeholder: senza questo il widget resta senza
+            // contenuto finché la posizione non è pronta (e se qualcosa va storto
+            // prima di allora, non si vede mai nulla).
+            views.setTextViewText(R.id.city_text, "Rilevamento posizione…")
+            manager.updateAppWidget(widgetId, views)
+
             val fusedClient = LocationServices.getFusedLocationProviderClient(context)
-            fusedClient.lastLocation.addOnSuccessListener { location ->
+            fusedClient.lastLocation
+                .addOnFailureListener { e ->
+                    views.setTextViewText(R.id.city_text, "Errore posizione: ${e.javaClass.simpleName}")
+                    manager.updateAppWidget(widgetId, views)
+                }
+                .addOnSuccessListener { location ->
                 if (location == null) {
                     views.setTextViewText(R.id.city_text, "Posizione non disponibile")
                     manager.updateAppWidget(widgetId, views)
@@ -75,41 +86,47 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
                 // La chiamata di rete e il geocoding NON possono stare sul thread principale
                 thread {
-                    val placeName = resolvePlaceName(context, location.latitude, location.longitude)
-                    views.setTextViewText(R.id.city_text, placeName)
+                    try {
+                        val placeName = resolvePlaceName(context, location.latitude, location.longitude)
+                        views.setTextViewText(R.id.city_text, placeName)
 
-                    val result = WeatherApi.fetchWeather(location.latitude, location.longitude)
-                    if (result == null) {
-                        views.setTextViewText(R.id.desc_text, "Errore di rete")
+                        val result = WeatherApi.fetchWeather(location.latitude, location.longitude)
+                        if (result == null) {
+                            views.setTextViewText(R.id.desc_text, "Errore di rete")
+                            manager.updateAppWidget(widgetId, views)
+                            return@thread
+                        }
+
+                        views.setTextViewText(R.id.icon_text, result.currentIcon)
+                        views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
+                        views.setTextViewText(R.id.desc_text, result.currentDesc)
+                        views.setTextViewText(R.id.humidity_text, "💧 ${result.currentHumidity}%")
+                        views.setTextViewText(R.id.rain_text, "☔ ${result.rainProbability}%")
+
+                        views.removeAllViews(R.id.hourly_container)
+                        for (hour in result.hourlyForecast) {
+                            val hourView = RemoteViews(context.packageName, R.layout.hour_column)
+                            hourView.setTextViewText(R.id.hour_label, hour.label)
+                            hourView.setTextViewText(R.id.hour_icon, hour.icon)
+                            hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
+                            views.addView(R.id.hourly_container, hourView)
+                        }
+
+                        views.removeAllViews(R.id.forecast_container)
+                        for (day in result.forecast.take(6)) {
+                            val dayView = RemoteViews(context.packageName, R.layout.day_column)
+                            dayView.setTextViewText(R.id.day_label, day.label)
+                            dayView.setTextViewText(R.id.day_icon, day.icon)
+                            dayView.setTextViewText(R.id.day_temp, "${day.tempMin}°/${day.tempMax}°")
+                            views.addView(R.id.forecast_container, dayView)
+                        }
+
                         manager.updateAppWidget(widgetId, views)
-                        return@thread
+                    } catch (e: Exception) {
+                        views.setTextViewText(R.id.city_text, "Errore: ${e.javaClass.simpleName}")
+                        views.setTextViewText(R.id.desc_text, e.message ?: "")
+                        manager.updateAppWidget(widgetId, views)
                     }
-
-                    views.setTextViewText(R.id.icon_text, result.currentIcon)
-                    views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
-                    views.setTextViewText(R.id.desc_text, result.currentDesc)
-                    views.setTextViewText(R.id.humidity_text, "💧 ${result.currentHumidity}%")
-                    views.setTextViewText(R.id.rain_text, "☔ ${result.rainProbability}%")
-
-                    views.removeAllViews(R.id.hourly_container)
-                    for (hour in result.hourlyForecast) {
-                        val hourView = RemoteViews(context.packageName, R.layout.hour_column)
-                        hourView.setTextViewText(R.id.hour_label, hour.label)
-                        hourView.setTextViewText(R.id.hour_icon, hour.icon)
-                        hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
-                        views.addView(R.id.hourly_container, hourView)
-                    }
-
-                    views.removeAllViews(R.id.forecast_container)
-                    for (day in result.forecast.take(6)) {
-                        val dayView = RemoteViews(context.packageName, R.layout.day_column)
-                        dayView.setTextViewText(R.id.day_label, day.label)
-                        dayView.setTextViewText(R.id.day_icon, day.icon)
-                        dayView.setTextViewText(R.id.day_temp, "${day.tempMin}°/${day.tempMax}°")
-                        views.addView(R.id.forecast_container, dayView)
-                    }
-
-                    manager.updateAppWidget(widgetId, views)
                 }
             }
         }
