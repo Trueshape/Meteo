@@ -1,4 +1,4 @@
-package com.example.weatherwidget
+package com.trueshape.truemeteo
 
 import android.Manifest
 import android.content.Intent
@@ -33,9 +33,9 @@ class MainActivity : AppCompatActivity() {
         layout.setPadding(48, 96, 48, 48)
 
         infoText = TextView(this)
-        infoText.text = "Widget Meteo installato.\n\n" +
+        infoText.text = "TrueMeteo installato.\n\n" +
                 "Tieni premuto sulla schermata Home, scegli 'Widget', " +
-                "cerca 'Weather Widget' e trascinalo sulla home."
+                "cerca 'TrueMeteo' e trascinalo sulla home."
         infoText.textSize = 16f
         layout.addView(infoText)
 

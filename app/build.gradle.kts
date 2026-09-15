@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.weatherwidget"
+    namespace = "com.trueshape.truemeteo"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.weatherwidget"
+        applicationId = "com.trueshape.truemeteo"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

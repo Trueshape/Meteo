@@ -1,4 +1,4 @@
-package com.example.weatherwidget
+package com.trueshape.truemeteo
 
 import org.json.JSONObject
 import java.net.HttpURLConnection

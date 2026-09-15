@@ -1,4 +1,4 @@
-package com.example.weatherwidget
+package com.trueshape.truemeteo
 
 import android.content.Context
 
