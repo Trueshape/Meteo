@@ -30,7 +30,7 @@ object WeatherApi {
         3 -> WeatherIcon("⛅", R.drawable.ic_weather_cloudy) to "Nuvoloso"
         45, 48 -> WeatherIcon("🌫️", R.drawable.ic_weather_fog) to "Nebbia"
         51, 53, 55, 56, 57 -> WeatherIcon("🌦️", R.drawable.ic_weather_drizzle) to "Pioviggine"
-        61, 63, 65, 66, 67 -> WeatherIcon("☔", R.drawable.ic_weather_rain) to "Pioggia"
+        61, 63, 65, 66, 67 -> WeatherIcon("🌧️", R.drawable.ic_weather_rain) to "Pioggia"
         71, 73, 75, 77 -> WeatherIcon("❄️", R.drawable.ic_weather_snow) to "Neve"
         80, 81, 82 -> WeatherIcon("🌦️", R.drawable.ic_weather_showers) to "Rovesci"
         95, 96, 99 -> WeatherIcon("🌩️", R.drawable.ic_weather_thunderstorm) to "Temporali"
