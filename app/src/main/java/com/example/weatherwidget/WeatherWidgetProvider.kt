@@ -103,10 +103,8 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.icon_text, result.currentIcon)
                     views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
                     views.setTextViewText(R.id.desc_text, result.currentDesc)
-                    views.setTextViewText(
-                        R.id.details_text,
-                        "💧 ${result.currentHumidity}%   ☔ ${result.rainProbability}%"
-                    )
+                    views.setTextViewText(R.id.humidity_text, "💧 ${result.currentHumidity}%")
+                    views.setTextViewText(R.id.rain_text, "☔ ${result.rainProbability}%")
 
                     views.removeAllViews(R.id.hourly_container)
                     for (hour in result.hourlyForecast) {
