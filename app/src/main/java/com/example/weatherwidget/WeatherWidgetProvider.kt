@@ -88,6 +88,19 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.icon_text, result.currentIcon)
                     views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
                     views.setTextViewText(R.id.desc_text, result.currentDesc)
+                    views.setTextViewText(
+                        R.id.details_text,
+                        "💧 ${result.currentHumidity}%   ☔ ${result.rainProbability}%"
+                    )
+
+                    views.removeAllViews(R.id.hourly_container)
+                    for (hour in result.hourlyForecast) {
+                        val hourView = RemoteViews(context.packageName, R.layout.hour_column)
+                        hourView.setTextViewText(R.id.hour_label, hour.label)
+                        hourView.setTextViewText(R.id.hour_icon, hour.icon)
+                        hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
+                        views.addView(R.id.hourly_container, hourView)
+                    }
 
                     views.removeAllViews(R.id.forecast_container)
                     for (day in result.forecast.take(6)) {
