@@ -5,7 +5,11 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.location.Geocoder
 import android.widget.RemoteViews
 import androidx.core.app.ActivityCompat
@@ -97,14 +101,9 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                         "💧 ${result.currentHumidity}%   ☔ ${result.rainProbability}%"
                     )
 
-                    views.removeAllViews(R.id.hourly_container)
-                    for (hour in result.hourlyForecast.take(6)) {
-                        val hourView = RemoteViews(context.packageName, R.layout.hour_column)
-                        hourView.setTextViewText(R.id.hour_label, hour.label)
-                        hourView.setTextViewText(R.id.hour_icon, hour.icon)
-                        hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
-                        views.addView(R.id.hourly_container, hourView)
-                    }
+                    views.setImageViewBitmap(
+                        R.id.hourly_image, drawHourlyBitmap(context, result.hourlyForecast)
+                    )
 
                     views.removeAllViews(R.id.forecast_container)
                     for (day in result.forecast.take(6)) {
@@ -118,6 +117,47 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     manager.updateAppWidget(widgetId, views)
                 }
             }
+        }
+
+        /**
+         * Disegna l'intera riga oraria come un'unica bitmap (una colonna per ora:
+         * etichetta, icona, temperatura). Una singola immagine dentro lo scroll
+         * orizzontale evita il bug per cui molte RemoteViews annidate in un
+         * HorizontalScrollView mandano in errore il widget su alcuni launcher.
+         */
+        private fun drawHourlyBitmap(context: Context, hours: List<HourForecast>): Bitmap {
+            val density = context.resources.displayMetrics.density
+            val columnWidth = (58 * density).toInt()
+            val height = (70 * density).toInt()
+            val bitmap = Bitmap.createBitmap(
+                (columnWidth * hours.size).coerceAtLeast(1), height, Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+
+            val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textAlign = Paint.Align.CENTER
+                textSize = 10 * density
+                typeface = Typeface.DEFAULT_BOLD
+            }
+            val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textAlign = Paint.Align.CENTER
+                textSize = 18 * density
+            }
+            val tempPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textAlign = Paint.Align.CENTER
+                textSize = 11 * density
+            }
+
+            hours.forEachIndexed { index, hour ->
+                val centerX = columnWidth * index + columnWidth / 2f
+                canvas.drawText(hour.label, centerX, 14 * density, labelPaint)
+                canvas.drawText(hour.icon, centerX, 40 * density, iconPaint)
+                canvas.drawText("${hour.temp}°", centerX, 60 * density, tempPaint)
+            }
+
+            return bitmap
         }
 
         /** Nome del luogo (es. "Milano") a partire dalle coordinate, con fallback su lat/lon. */
