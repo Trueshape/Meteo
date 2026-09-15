@@ -6,10 +6,15 @@ import java.net.URL
 
 data class DayForecast(val label: String, val icon: String, val tempMin: Int, val tempMax: Int)
 
+data class HourForecast(val label: String, val icon: String, val temp: Int)
+
 data class WeatherResult(
     val currentTemp: Int,
     val currentIcon: String,
     val currentDesc: String,
+    val currentHumidity: Int,
+    val rainProbability: Int,
+    val hourlyForecast: List<HourForecast>,
     val forecast: List<DayForecast>
 )
 
@@ -40,7 +45,9 @@ object WeatherApi {
             val url = URL(
                 "https://api.open-meteo.com/v1/forecast" +
                         "?latitude=$lat&longitude=$lon" +
-                        "&current=temperature_2m,weather_code" +
+                        "&current=temperature_2m,weather_code,relative_humidity_2m" +
+                        "&hourly=temperature_2m,weather_code,precipitation_probability" +
+                        "&forecast_hours=24" +
                         "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
                         "&forecast_days=7&timezone=auto"
             )
@@ -55,7 +62,25 @@ object WeatherApi {
             val current = json.getJSONObject("current")
             val currentTemp = current.getDouble("temperature_2m").toInt()
             val currentCode = current.getInt("weather_code")
+            val currentHumidity = current.getDouble("relative_humidity_2m").toInt()
             val (icon, desc) = codeToIconDesc(currentCode)
+
+            val hourly = json.getJSONObject("hourly")
+            val hourTimes = hourly.getJSONArray("time")
+            val hourCodes = hourly.getJSONArray("weather_code")
+            val hourTemps = hourly.getJSONArray("temperature_2m")
+            val hourRainProb = hourly.getJSONArray("precipitation_probability")
+
+            val rainProbability = if (hourRainProb.length() > 0) hourRainProb.getInt(0) else 0
+
+            val hourlyList = mutableListOf<HourForecast>()
+            for (i in 0 until hourTimes.length()) {
+                val timeStr = hourTimes.getString(i) // formato YYYY-MM-DDTHH:MM
+                val hourLabel = timeStr.substringAfter("T").substringBefore(":")
+                val (hIcon, _) = codeToIconDesc(hourCodes.getInt(i))
+                val hTemp = hourTemps.getDouble(i).toInt()
+                hourlyList.add(HourForecast(hourLabel, hIcon, hTemp))
+            }
 
             val daily = json.getJSONObject("daily")
             val times = daily.getJSONArray("time")
@@ -78,7 +103,9 @@ object WeatherApi {
                 forecastList.add(DayForecast(label, dIcon, tMin, tMax))
             }
 
-            WeatherResult(currentTemp, icon, desc, forecastList)
+            WeatherResult(
+                currentTemp, icon, desc, currentHumidity, rainProbability, hourlyList, forecastList
+            )
         } catch (e: Exception) {
             null
         }
