@@ -4,13 +4,16 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class DayForecast(val label: String, val icon: Int, val tempMin: Int, val tempMax: Int)
+/** Un'icona meteo nei due formati disponibili: emoji di sistema o disegno vettoriale. */
+data class WeatherIcon(val emoji: String, val drawableRes: Int)
 
-data class HourForecast(val label: String, val icon: Int, val temp: Int)
+data class DayForecast(val label: String, val icon: WeatherIcon, val tempMin: Int, val tempMax: Int)
+
+data class HourForecast(val label: String, val icon: WeatherIcon, val temp: Int)
 
 data class WeatherResult(
     val currentTemp: Int,
-    val currentIcon: Int,
+    val currentIcon: WeatherIcon,
     val currentDesc: String,
     val currentHumidity: Int,
     val rainProbability: Int,
@@ -20,18 +23,18 @@ data class WeatherResult(
 
 object WeatherApi {
 
-    // Mappa i weather code di Open-Meteo (WMO) a icona (Weather Icons, MIT/OFL) + descrizione
-    private fun codeToIconDesc(code: Int): Pair<Int, String> = when (code) {
-        0 -> R.drawable.ic_weather_sunny to "Sereno"
-        1, 2 -> R.drawable.ic_weather_partly_cloudy to "Poco nuvoloso"
-        3 -> R.drawable.ic_weather_cloudy to "Nuvoloso"
-        45, 48 -> R.drawable.ic_weather_fog to "Nebbia"
-        51, 53, 55, 56, 57 -> R.drawable.ic_weather_drizzle to "Pioviggine"
-        61, 63, 65, 66, 67 -> R.drawable.ic_weather_rain to "Pioggia"
-        71, 73, 75, 77 -> R.drawable.ic_weather_snow to "Neve"
-        80, 81, 82 -> R.drawable.ic_weather_showers to "Rovesci"
-        95, 96, 99 -> R.drawable.ic_weather_thunderstorm to "Temporali"
-        else -> R.drawable.ic_weather_cloudy to "Variabile"
+    // Mappa i weather code di Open-Meteo (WMO) a icona (emoji + vettoriale Weather Icons) + descrizione
+    private fun codeToIconDesc(code: Int): Pair<WeatherIcon, String> = when (code) {
+        0 -> WeatherIcon("☀️", R.drawable.ic_weather_sunny) to "Sereno"
+        1, 2 -> WeatherIcon("🌤️", R.drawable.ic_weather_partly_cloudy) to "Poco nuvoloso"
+        3 -> WeatherIcon("⛅", R.drawable.ic_weather_cloudy) to "Nuvoloso"
+        45, 48 -> WeatherIcon("🌫️", R.drawable.ic_weather_fog) to "Nebbia"
+        51, 53, 55, 56, 57 -> WeatherIcon("🌦️", R.drawable.ic_weather_drizzle) to "Pioviggine"
+        61, 63, 65, 66, 67 -> WeatherIcon("☔", R.drawable.ic_weather_rain) to "Pioggia"
+        71, 73, 75, 77 -> WeatherIcon("❄️", R.drawable.ic_weather_snow) to "Neve"
+        80, 81, 82 -> WeatherIcon("🌦️", R.drawable.ic_weather_showers) to "Rovesci"
+        95, 96, 99 -> WeatherIcon("🌩️", R.drawable.ic_weather_thunderstorm) to "Temporali"
+        else -> WeatherIcon("⛅", R.drawable.ic_weather_cloudy) to "Variabile"
     }
 
     private val giorni = arrayOf("Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab")

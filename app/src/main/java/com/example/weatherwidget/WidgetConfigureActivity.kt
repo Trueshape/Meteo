@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
 
@@ -68,6 +70,38 @@ class WidgetConfigureActivity : Activity() {
         hint.setPadding(0, 8, 0, 32)
         layout.addView(hint)
 
+        val iconTitle = TextView(this)
+        iconTitle.text = "Set di icone"
+        iconTitle.textSize = 18f
+        iconTitle.setPadding(0, 16, 0, 8)
+        layout.addView(iconTitle)
+
+        val startIconSet = WidgetPrefs.getIconSet(this, appWidgetId)
+
+        val iconGroup = RadioGroup(this)
+        iconGroup.orientation = RadioGroup.VERTICAL
+
+        val emojiOption = RadioButton(this)
+        emojiOption.text = "Emoji di sistema"
+        emojiOption.id = android.view.View.generateViewId()
+        iconGroup.addView(emojiOption)
+
+        val vectorOption = RadioButton(this)
+        vectorOption.text = "Icone disegnate (Weather Icons)"
+        vectorOption.id = android.view.View.generateViewId()
+        iconGroup.addView(vectorOption)
+
+        if (startIconSet == WidgetPrefs.ICON_SET_VECTOR) {
+            vectorOption.isChecked = true
+        } else {
+            emojiOption.isChecked = true
+        }
+        layout.addView(iconGroup)
+
+        val iconSpacer = TextView(this)
+        iconSpacer.setPadding(0, 0, 0, 24)
+        layout.addView(iconSpacer)
+
         val saveButton = Button(this)
         saveButton.text = "Salva e aggiungi widget"
         val buttonParams = LinearLayout.LayoutParams(
@@ -78,6 +112,12 @@ class WidgetConfigureActivity : Activity() {
         saveButton.layoutParams = buttonParams
         saveButton.setOnClickListener {
             WidgetPrefs.setOpacity(this, appWidgetId, seekBar.progress)
+            val chosenIconSet = if (vectorOption.isChecked) {
+                WidgetPrefs.ICON_SET_VECTOR
+            } else {
+                WidgetPrefs.ICON_SET_EMOJI
+            }
+            WidgetPrefs.setIconSet(this, appWidgetId, chosenIconSet)
 
             val manager = AppWidgetManager.getInstance(this)
             WeatherWidgetProvider.updateWidget(this, manager, appWidgetId)

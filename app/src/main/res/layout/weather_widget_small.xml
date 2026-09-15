@@ -30,13 +30,24 @@
 
             <!-- L'icona sporge apposta oltre l'angolo in alto a destra del widget:
                  la parte fuori dai confini viene tagliata dal sistema, qualunque
-                 sia il simbolo meteo. -->
+                 sia il simbolo meteo. Le due viste (emoji/vettoriale) condividono
+                 lo spazio: solo una delle due è visibile alla volta. -->
+            <TextView
+                android:id="@+id/icon_text_emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-18dp"
+                android:layout_marginEnd="-14dp"
+                android:text="⛅"
+                android:textSize="52sp" />
+
             <ImageView
-                android:id="@+id/icon_text"
+                android:id="@+id/icon_text_vector"
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:layout_marginTop="-18dp"
                 android:layout_marginEnd="-14dp"
+                android:visibility="gone"
                 android:src="@drawable/ic_weather_cloudy" />
         </LinearLayout>
 
