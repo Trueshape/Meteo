@@ -35,8 +35,23 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             updateSingleWidget(context, manager, widgetId)
         }
 
+        /**
+         * Sceglie il layout in base all'altezza attuale del widget (in celle Android,
+         * ~70dp l'una): 2 righe -> solo il presente, 3 -> +orario, 4+ -> +settimanale.
+         */
+        private fun pickLayoutRes(context: Context, manager: AppWidgetManager, widgetId: Int): Int {
+            val options = manager.getAppWidgetOptions(widgetId)
+            val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+            return when {
+                minHeightDp < 155 -> R.layout.weather_widget_small
+                minHeightDp < 220 -> R.layout.weather_widget_medium
+                else -> R.layout.weather_widget_large
+            }
+        }
+
         private fun updateSingleWidget(context: Context, manager: AppWidgetManager, widgetId: Int) {
-            val views = RemoteViews(context.packageName, R.layout.weather_widget)
+            val layoutRes = pickLayoutRes(context, manager, widgetId)
+            val views = RemoteViews(context.packageName, layoutRes)
 
             val opacityPercent = WidgetPrefs.getOpacity(context, widgetId)
             val alpha = (opacityPercent * 255 / 100).coerceIn(0, 255)
@@ -156,6 +171,16 @@ class WeatherWidgetProvider : AppWidgetProvider() {
             )
             for (id in ids) updateSingleWidget(context, manager, id)
         }
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: android.os.Bundle
+    ) {
+        // L'utente ha ridimensionato il widget: potrebbe servire un layout diverso.
+        updateSingleWidget(context, appWidgetManager, appWidgetId)
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
