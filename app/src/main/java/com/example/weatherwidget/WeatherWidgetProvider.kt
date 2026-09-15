@@ -100,17 +100,17 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                         return@thread
                     }
 
-                    views.setTextViewText(R.id.icon_text, result.currentIcon)
+                    views.setImageViewResource(R.id.icon_text, result.currentIcon)
                     views.setTextViewText(R.id.temp_text, "${result.currentTemp}°C")
                     views.setTextViewText(R.id.desc_text, result.currentDesc)
-                    views.setTextViewText(R.id.humidity_text, "💧 ${result.currentHumidity}%")
-                    views.setTextViewText(R.id.rain_text, "☔ ${result.rainProbability}%")
+                    views.setTextViewText(R.id.humidity_text, "${result.currentHumidity}%")
+                    views.setTextViewText(R.id.rain_text, "${result.rainProbability}%")
 
                     views.removeAllViews(R.id.hourly_container)
                     for (hour in result.hourlyForecast) {
                         val hourView = RemoteViews(context.packageName, R.layout.hour_column)
                         hourView.setTextViewText(R.id.hour_label, hour.label)
-                        hourView.setTextViewText(R.id.hour_icon, hour.icon)
+                        hourView.setImageViewResource(R.id.hour_icon, hour.icon)
                         hourView.setTextViewText(R.id.hour_temp, "${hour.temp}°")
                         views.addView(R.id.hourly_container, hourView)
                     }
@@ -119,7 +119,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                     for (day in result.forecast.take(6)) {
                         val dayView = RemoteViews(context.packageName, R.layout.day_column)
                         dayView.setTextViewText(R.id.day_label, day.label)
-                        dayView.setTextViewText(R.id.day_icon, day.icon)
+                        dayView.setImageViewResource(R.id.day_icon, day.icon)
                         dayView.setTextViewText(R.id.day_temp, "${day.tempMin}°/${day.tempMax}°")
                         views.addView(R.id.forecast_container, dayView)
                     }
