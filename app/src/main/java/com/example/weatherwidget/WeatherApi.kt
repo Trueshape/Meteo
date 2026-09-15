@@ -4,7 +4,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class DayForecast(val label: String, val icon: String, val tempMax: Int)
+data class DayForecast(val label: String, val icon: String, val tempMin: Int, val tempMax: Int)
 
 data class WeatherResult(
     val currentTemp: Int,
@@ -41,7 +41,7 @@ object WeatherApi {
                 "https://api.open-meteo.com/v1/forecast" +
                         "?latitude=$lat&longitude=$lon" +
                         "&current=temperature_2m,weather_code" +
-                        "&daily=weather_code,temperature_2m_max" +
+                        "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
                         "&forecast_days=7&timezone=auto"
             )
             val conn = url.openConnection() as HttpURLConnection
@@ -61,9 +61,10 @@ object WeatherApi {
             val times = daily.getJSONArray("time")
             val codes = daily.getJSONArray("weather_code")
             val maxTemps = daily.getJSONArray("temperature_2m_max")
+            val minTemps = daily.getJSONArray("temperature_2m_min")
 
             val forecastList = mutableListOf<DayForecast>()
-            // Parte da indice 1 per saltare "oggi" e mostrare i giorni successivi
+            // Parte da indice 1 per saltare "oggi" e mostrare i 6 giorni successivi
             for (i in 1 until times.length()) {
                 val dateStr = times.getString(i) // formato YYYY-MM-DD
                 val parts = dateStr.split("-")
@@ -72,8 +73,9 @@ object WeatherApi {
                 )
                 val label = giorni[cal.get(java.util.Calendar.DAY_OF_WEEK) - 1]
                 val (dIcon, _) = codeToIconDesc(codes.getInt(i))
+                val tMin = minTemps.getDouble(i).toInt()
                 val tMax = maxTemps.getDouble(i).toInt()
-                forecastList.add(DayForecast(label, dIcon, tMax))
+                forecastList.add(DayForecast(label, dIcon, tMin, tMax))
             }
 
             WeatherResult(currentTemp, icon, desc, forecastList)
