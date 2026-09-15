@@ -1,5 +1,6 @@
 package com.example.weatherwidget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
@@ -45,6 +46,16 @@ class WeatherWidgetProvider : AppWidgetProvider() {
                 alpha, Color.red(BASE_COLOR), Color.green(BASE_COLOR), Color.blue(BASE_COLOR)
             )
             views.setInt(R.id.widget_root, "setBackgroundColor", backgroundColor)
+
+            val configureIntent = Intent(context, WidgetConfigureActivity::class.java)
+            configureIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            val configurePendingIntent = PendingIntent.getActivity(
+                context,
+                widgetId,
+                configureIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.settings_icon, configurePendingIntent)
 
             val hasPermission = ActivityCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_FINE_LOCATION
