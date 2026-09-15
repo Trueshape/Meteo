@@ -117,7 +117,7 @@
                     <ImageView
                         android:layout_width="12dp"
                         android:layout_height="12dp"
-                        android:src="@drawable/ic_weather_raindrops" />
+                        android:src="@drawable/ic_weather_rain" />
 
                     <TextView
                         android:id="@+id/rain_text"
