@@ -42,10 +42,15 @@ class WeatherWidgetProvider : AppWidgetProvider() {
          */
         private fun pickLayoutRes(context: Context, manager: AppWidgetManager, widgetId: Int): Int {
             val options = manager.getAppWidgetOptions(widgetId)
+            // OPTION_APPWIDGET_MIN_HEIGHT è l'altezza in landscape, non quella reale in
+            // portrait (dove il widget viene quasi sempre visto): serve MAX_HEIGHT per quella.
+            // Si prende la maggiore delle due per coprire entrambi gli orientamenti.
             val minHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 110)
+            val maxHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeightDp)
+            val heightDp = maxOf(minHeightDp, maxHeightDp)
             return when {
-                minHeightDp < 155 -> R.layout.weather_widget_small
-                minHeightDp < 220 -> R.layout.weather_widget_medium
+                heightDp < 155 -> R.layout.weather_widget_small
+                heightDp < 220 -> R.layout.weather_widget_medium
                 else -> R.layout.weather_widget_large
             }
         }
